@@ -1,20 +1,11 @@
 {
-  "name": "cordova-plugin-file",
+  "name": "konnect-cordova-plugin-file",
   "version": "2.1.0",
   "description": "Cordova File Plugin",
   "cordova": {
-    "id": "cordova-plugin-file",
+    "id": "konnect-cordova-plugin-file",
     "platforms": [
-      "android",
-      "amazon-fireos",
-      "ubuntu",
-      "ios",
-      "wp7",
-      "wp8",
-      "blackberry10",
-      "windows8",
-      "windows",
-      "firefoxos"
+      "android"
     ]
   },
   "repository": {

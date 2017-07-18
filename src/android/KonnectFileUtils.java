@@ -16,7 +16,7 @@
        specific language governing permissions and limitations
        under the License.
  */
-package org.apache.cordova.file;
+package android;
 
 import android.app.Activity;
 import android.content.Context;
@@ -48,7 +48,7 @@ import java.util.HashSet;
 /**
  * This class provides file and directory services to JavaScript.
  */
-public class FileUtils extends CordovaPlugin {
+public class KonnectFileUtils extends CordovaPlugin {
     private static final String LOG_TAG = "FileUtils";
 
     public static int NOT_FOUND_ERR = 1;
@@ -70,7 +70,7 @@ public class FileUtils extends CordovaPlugin {
     private boolean configured = false;
 
     // This field exists only to support getEntry, below, which has been deprecated
-    private static FileUtils filePlugin;
+    private static KonnectFileUtils filePlugin;
 
     private interface FileOp {
         void run(JSONArray args) throws Exception;
@@ -202,7 +202,7 @@ public class FileUtils extends CordovaPlugin {
 
     		// Initialize static plugin reference for deprecated getEntry method
     		if (filePlugin == null) {
-    			FileUtils.filePlugin = this;
+    			KonnectFileUtils.filePlugin = this;
     		}
     	} else {
     		Log.e(LOG_TAG, "File plugin configuration error: Please set AndroidPersistentFileLocation in config.xml to one of \"internal\" (for new applications) or \"compatibility\" (for compatibility with previous versions)");
@@ -210,7 +210,7 @@ public class FileUtils extends CordovaPlugin {
     	}
     }
     
-    public static FileUtils getFilePlugin() {
+    public static KonnectFileUtils getFilePlugin() {
 		return filePlugin;
 	}
 
@@ -368,7 +368,7 @@ public class FileUtils extends CordovaPlugin {
                     int fstype=args.getInt(0);
                     long size = args.optLong(1);
                     if (size != 0 && size > (DirectoryManager.getFreeDiskSpace(true) * 1024)) {
-                        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, FileUtils.QUOTA_EXCEEDED_ERR));
+                        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, KonnectFileUtils.QUOTA_EXCEEDED_ERR));
                     } else {
                         JSONObject obj = requestFileSystem(fstype);
                         callbackContext.success(obj);
@@ -431,7 +431,7 @@ public class FileUtils extends CordovaPlugin {
                     if (success) {
                         callbackContext.success();
                     } else {
-                        callbackContext.error(FileUtils.NO_MODIFICATION_ALLOWED_ERR);
+                        callbackContext.error(KonnectFileUtils.NO_MODIFICATION_ALLOWED_ERR);
                     }
                 }
             }, rawArgs, callbackContext);
@@ -444,7 +444,7 @@ public class FileUtils extends CordovaPlugin {
                     if (success) {
                         callbackContext.success();
                     } else {
-                        callbackContext.error(FileUtils.NO_MODIFICATION_ALLOWED_ERR);
+                        callbackContext.error(KonnectFileUtils.NO_MODIFICATION_ALLOWED_ERR);
                     }
                 }
             }, rawArgs, callbackContext);
@@ -566,28 +566,28 @@ public class FileUtils extends CordovaPlugin {
                     f.run(args);
                 } catch ( Exception e) {
                     if( e instanceof EncodingException){
-                        callbackContext.error(FileUtils.ENCODING_ERR);
+                        callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof FileNotFoundException) {
-                        callbackContext.error(FileUtils.NOT_FOUND_ERR);
+                        callbackContext.error(KonnectFileUtils.NOT_FOUND_ERR);
                     } else if(e instanceof FileExistsException) {
-                        callbackContext.error(FileUtils.PATH_EXISTS_ERR);
+                        callbackContext.error(KonnectFileUtils.PATH_EXISTS_ERR);
                     } else if(e instanceof NoModificationAllowedException ) {
-                        callbackContext.error(FileUtils.NO_MODIFICATION_ALLOWED_ERR);
+                        callbackContext.error(KonnectFileUtils.NO_MODIFICATION_ALLOWED_ERR);
                     } else if(e instanceof InvalidModificationException ) {
-                        callbackContext.error(FileUtils.INVALID_MODIFICATION_ERR);
+                        callbackContext.error(KonnectFileUtils.INVALID_MODIFICATION_ERR);
                     } else if(e instanceof MalformedURLException ) {
-                        callbackContext.error(FileUtils.ENCODING_ERR);
+                        callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof IOException ) {
-                        callbackContext.error(FileUtils.INVALID_MODIFICATION_ERR);
+                        callbackContext.error(KonnectFileUtils.INVALID_MODIFICATION_ERR);
                     } else if(e instanceof EncodingException ) {
-                        callbackContext.error(FileUtils.ENCODING_ERR);
+                        callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof TypeMismatchException ) {
-                        callbackContext.error(FileUtils.TYPE_MISMATCH_ERR);
+                        callbackContext.error(KonnectFileUtils.TYPE_MISMATCH_ERR);
                     } else if(e instanceof JSONException ) {
                         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.JSON_EXCEPTION));
                     } else {
                         e.printStackTrace();
-                    	callbackContext.error(FileUtils.UNKNOWN_ERR);
+                    	callbackContext.error(KonnectFileUtils.UNKNOWN_ERR);
                     }
                 }
             }
