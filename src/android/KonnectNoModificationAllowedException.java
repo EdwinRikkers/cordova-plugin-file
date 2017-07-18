@@ -17,13 +17,12 @@
        under the License.
 */
 
-
 package org.apache.cordova.file;
 
 @SuppressWarnings("serial")
-public class TypeMismatchException extends Exception {
+public class KonnectNoModificationAllowedException extends Exception {
 
-    public TypeMismatchException(String message) {
+    public KonnectNoModificationAllowedException(String message) {
         super(message);
     }
 

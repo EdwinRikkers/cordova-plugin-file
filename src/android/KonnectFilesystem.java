@@ -34,14 +34,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class Filesystem {
+public abstract class KonnectFilesystem {
 
     protected final Uri rootUri;
     protected final CordovaResourceApi resourceApi;
     public final String name;
     private JSONObject rootEntry;
 
-    public Filesystem(Uri rootUri, String name, CordovaResourceApi resourceApi) {
+    public KonnectFilesystem(Uri rootUri, String name, CordovaResourceApi resourceApi) {
         this.rootUri = rootUri;
         this.name = name;
         this.resourceApi = resourceApi;
@@ -51,7 +51,7 @@ public abstract class Filesystem {
 		public void handleData(InputStream inputStream, String contentType) throws IOException;
 	}
 
-    public static JSONObject makeEntryForURL(LocalFilesystemURL inputURL, Uri nativeURL) {
+    public static JSONObject makeEntryForURL(KonnectLocalFilesystemURL inputURL, Uri nativeURL) {
         try {
             String path = inputURL.path;
             int end = path.endsWith("/") ? 1 : 0;
@@ -81,17 +81,17 @@ public abstract class Filesystem {
         }
     }
 
-    public JSONObject makeEntryForURL(LocalFilesystemURL inputURL) {
+    public JSONObject makeEntryForURL(KonnectLocalFilesystemURL inputURL) {
         Uri nativeUri = toNativeUri(inputURL);
         return nativeUri == null ? null : makeEntryForURL(inputURL, nativeUri);
     }
 
     public JSONObject makeEntryForNativeUri(Uri nativeUri) {
-        LocalFilesystemURL inputUrl = toLocalUri(nativeUri);
+        KonnectLocalFilesystemURL inputUrl = toLocalUri(nativeUri);
         return inputUrl == null ? null : makeEntryForURL(inputUrl, nativeUri);
     }
 
-    public JSONObject getEntryForLocalURL(LocalFilesystemURL inputURL) throws IOException {
+    public JSONObject getEntryForLocalURL(KonnectLocalFilesystemURL inputURL) throws IOException {
         return makeEntryForURL(inputURL);
     }
 
@@ -99,33 +99,33 @@ public abstract class Filesystem {
         return makeEntryForNativeUri(Uri.fromFile(file));
     }
 
-    abstract JSONObject getFileForLocalURL(LocalFilesystemURL inputURL, String path,
-			JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException;
+    abstract JSONObject getFileForLocalURL(KonnectLocalFilesystemURL inputURL, String path,
+			JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, KonnectTypeMismatchException, KonnectEncodingException, JSONException;
 
-	abstract boolean removeFileAtLocalURL(LocalFilesystemURL inputURL) throws InvalidModificationException, NoModificationAllowedException;
+	abstract boolean removeFileAtLocalURL(KonnectLocalFilesystemURL inputURL) throws KonnectInvalidModificationException, KonnectNoModificationAllowedException;
 
-	abstract boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws KonnectFileExistsException, NoModificationAllowedException;
+	abstract boolean recursiveRemoveFileAtLocalURL(KonnectLocalFilesystemURL inputURL) throws KonnectFileExistsException, KonnectNoModificationAllowedException;
 
-	abstract LocalFilesystemURL[] listChildren(LocalFilesystemURL inputURL) throws FileNotFoundException;
+	abstract KonnectLocalFilesystemURL[] listChildren(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException;
 
-    public final JSONArray readEntriesAtLocalURL(LocalFilesystemURL inputURL) throws FileNotFoundException {
-        LocalFilesystemURL[] children = listChildren(inputURL);
+    public final JSONArray readEntriesAtLocalURL(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException {
+        KonnectLocalFilesystemURL[] children = listChildren(inputURL);
         JSONArray entries = new JSONArray();
         if (children != null) {
-            for (LocalFilesystemURL url : children) {
+            for (KonnectLocalFilesystemURL url : children) {
                 entries.put(makeEntryForURL(url));
             }
         }
         return entries;
     }
 
-	abstract JSONObject getFileMetadataForLocalURL(LocalFilesystemURL inputURL) throws FileNotFoundException;
+	abstract JSONObject getFileMetadataForLocalURL(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException;
 
     public Uri getRootUri() {
         return rootUri;
     }
 
-    public boolean exists(LocalFilesystemURL inputURL) {
+    public boolean exists(KonnectLocalFilesystemURL inputURL) {
         try {
             getFileMetadataForLocalURL(inputURL);
         } catch (FileNotFoundException e) {
@@ -146,7 +146,7 @@ public abstract class Filesystem {
         return ret;
     }
 
-    public LocalFilesystemURL localUrlforFullPath(String fullPath) {
+    public KonnectLocalFilesystemURL localUrlforFullPath(String fullPath) {
         Uri nativeUri = nativeUriForFullPath(fullPath);
         if (nativeUri != null) {
             return toLocalUri(nativeUri);
@@ -187,8 +187,8 @@ public abstract class Filesystem {
 
 
 
-    public abstract Uri toNativeUri(LocalFilesystemURL inputURL);
-    public abstract LocalFilesystemURL toLocalUri(Uri inputURL);
+    public abstract Uri toNativeUri(KonnectLocalFilesystemURL inputURL);
+    public abstract KonnectLocalFilesystemURL toLocalUri(Uri inputURL);
 
     public JSONObject getRootEntry() {
         if (rootEntry == null) {
@@ -197,16 +197,16 @@ public abstract class Filesystem {
         return rootEntry;
     }
 
-	public JSONObject getParentForLocalURL(LocalFilesystemURL inputURL) throws IOException {
+	public JSONObject getParentForLocalURL(KonnectLocalFilesystemURL inputURL) throws IOException {
         Uri parentUri = inputURL.uri;
         String parentPath = new File(inputURL.uri.getPath()).getParent();
         if (!"/".equals(parentPath)) {
             parentUri = inputURL.uri.buildUpon().path(parentPath + '/').build();
 		}
-		return getEntryForLocalURL(LocalFilesystemURL.parse(parentUri));
+		return getEntryForLocalURL(KonnectLocalFilesystemURL.parse(parentUri));
 	}
 
-    protected LocalFilesystemURL makeDestinationURL(String newName, LocalFilesystemURL srcURL, LocalFilesystemURL destURL, boolean isDirectory) {
+    protected KonnectLocalFilesystemURL makeDestinationURL(String newName, KonnectLocalFilesystemURL srcURL, KonnectLocalFilesystemURL destURL, boolean isDirectory) {
         // I know this looks weird but it is to work around a JSON bug.
         if ("null".equals(newName) || "".equals(newName)) {
             newName = srcURL.uri.getLastPathSegment();;
@@ -221,7 +221,7 @@ public abstract class Filesystem {
         if (isDirectory) {
             newDest += '/';
         }
-        return LocalFilesystemURL.parse(newDest);
+        return KonnectLocalFilesystemURL.parse(newDest);
     }
 
 	/* Read a source URL (possibly from a different filesystem, srcFs,) and copy it to
@@ -229,13 +229,13 @@ public abstract class Filesystem {
 	 * If move is true, then this method should either perform an atomic move operation
 	 * or remove the source file when finished.
 	 */
-    public JSONObject copyFileToURL(LocalFilesystemURL destURL, String newName,
-            Filesystem srcFs, LocalFilesystemURL srcURL, boolean move) throws IOException, InvalidModificationException, JSONException, NoModificationAllowedException, KonnectFileExistsException {
+    public JSONObject copyFileToURL(KonnectLocalFilesystemURL destURL, String newName,
+            KonnectFilesystem srcFs, KonnectLocalFilesystemURL srcURL, boolean move) throws IOException, KonnectInvalidModificationException, JSONException, KonnectNoModificationAllowedException, KonnectFileExistsException {
         // First, check to see that we can do it
         if (move && !srcFs.canRemoveFileAtLocalURL(srcURL)) {
-            throw new NoModificationAllowedException("Cannot move file at source URL");
+            throw new KonnectNoModificationAllowedException("Cannot move file at source URL");
         }
-        final LocalFilesystemURL destination = makeDestinationURL(newName, srcURL, destURL, srcURL.isDirectory);
+        final KonnectLocalFilesystemURL destination = makeDestinationURL(newName, srcURL, destURL, srcURL.isDirectory);
 
         Uri srcNativeUri = srcFs.toNativeUri(srcURL);
 
@@ -256,11 +256,11 @@ public abstract class Filesystem {
         return getEntryForLocalURL(destination);
     }
 
-    public OutputStream getOutputStreamForURL(LocalFilesystemURL inputURL) throws IOException {
+    public OutputStream getOutputStreamForURL(KonnectLocalFilesystemURL inputURL) throws IOException {
         return resourceApi.openOutputStream(toNativeUri(inputURL));
     }
 
-    public void readFileAtURL(LocalFilesystemURL inputURL, long start, long end,
+    public void readFileAtURL(KonnectLocalFilesystemURL inputURL, long start, long end,
                               KonnectReadFileCallback readFileCallback) throws IOException {
         CordovaResourceApi.OpenForReadResult ofrr = resourceApi.openForRead(toNativeUri(inputURL));
         if (end < 0) {
@@ -281,18 +281,18 @@ public abstract class Filesystem {
         }
     }
 
-	abstract long writeToFileAtURL(LocalFilesystemURL inputURL, String data, int offset,
-			boolean isBinary) throws NoModificationAllowedException, IOException;
+	abstract long writeToFileAtURL(KonnectLocalFilesystemURL inputURL, String data, int offset,
+			boolean isBinary) throws KonnectNoModificationAllowedException, IOException;
 
-	abstract long truncateFileAtURL(LocalFilesystemURL inputURL, long size)
-			throws IOException, NoModificationAllowedException;
+	abstract long truncateFileAtURL(KonnectLocalFilesystemURL inputURL, long size)
+			throws IOException, KonnectNoModificationAllowedException;
 
 	// This method should return null if filesystem urls cannot be mapped to paths
-	abstract String filesystemPathForURL(LocalFilesystemURL url);
+	abstract String filesystemPathForURL(KonnectLocalFilesystemURL url);
 
-	abstract LocalFilesystemURL URLforFilesystemPath(String path);
+	abstract KonnectLocalFilesystemURL URLforFilesystemPath(String path);
 
-	abstract boolean canRemoveFileAtLocalURL(LocalFilesystemURL inputURL);
+	abstract boolean canRemoveFileAtLocalURL(KonnectLocalFilesystemURL inputURL);
 
     protected class KonnectLimitedInputStream extends FilterInputStream {
         long numBytesToRead;

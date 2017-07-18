@@ -20,7 +20,7 @@ package org.apache.cordova.file;
 
 import android.net.Uri;
 
-public class LocalFilesystemURL {
+public class KonnectLocalFilesystemURL {
 	
 	public static final String FILESYSTEM_PROTOCOL = "cdvfile";
 
@@ -29,14 +29,14 @@ public class LocalFilesystemURL {
     public final String path;
     public final boolean isDirectory;
 
-	private LocalFilesystemURL(Uri uri, String fsName, String fsPath, boolean isDirectory) {
+	private KonnectLocalFilesystemURL(Uri uri, String fsName, String fsPath, boolean isDirectory) {
 		this.uri = uri;
         this.fsName = fsName;
         this.path = fsPath;
         this.isDirectory = isDirectory;
 	}
 
-    public static LocalFilesystemURL parse(Uri uri) {
+    public static KonnectLocalFilesystemURL parse(Uri uri) {
         if (!FILESYSTEM_PROTOCOL.equals(uri.getScheme())) {
             return null;
         }
@@ -51,10 +51,10 @@ public class LocalFilesystemURL {
         String fsName = path.substring(1, firstSlashIdx);
         path = path.substring(firstSlashIdx);
         boolean isDirectory = path.charAt(path.length() - 1) == '/';
-        return new LocalFilesystemURL(uri, fsName, path, isDirectory);
+        return new KonnectLocalFilesystemURL(uri, fsName, path, isDirectory);
     }
 
-    public static LocalFilesystemURL parse(String uri) {
+    public static KonnectLocalFilesystemURL parse(String uri) {
         return parse(Uri.parse(uri));
     }
 

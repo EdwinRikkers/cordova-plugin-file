@@ -34,7 +34,7 @@ import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AssetFilesystem extends Filesystem {
+public class KonnectAssetFilesystem extends KonnectFilesystem {
 
     private final AssetManager assetManager;
 
@@ -124,18 +124,18 @@ public class AssetFilesystem extends Filesystem {
         }
     }
 
-    public AssetFilesystem(AssetManager assetManager, CordovaResourceApi resourceApi) {
+    public KonnectAssetFilesystem(AssetManager assetManager, CordovaResourceApi resourceApi) {
         super(Uri.parse("file:///android_asset/"), "assets", resourceApi);
         this.assetManager = assetManager;
 	}
 
     @Override
-    public Uri toNativeUri(LocalFilesystemURL inputURL) {
+    public Uri toNativeUri(KonnectLocalFilesystemURL inputURL) {
         return nativeUriForFullPath(inputURL.path);
     }
 
     @Override
-    public LocalFilesystemURL toLocalUri(Uri inputURL) {
+    public KonnectLocalFilesystemURL toLocalUri(Uri inputURL) {
         if (!"file".equals(inputURL.getScheme())) {
             return null;
         }
@@ -153,7 +153,7 @@ public class AssetFilesystem extends Filesystem {
             subPath = subPath.substring(1);
         }
         Uri.Builder b = new Uri.Builder()
-            .scheme(LocalFilesystemURL.FILESYSTEM_PROTOCOL)
+            .scheme(KonnectLocalFilesystemURL.FILESYSTEM_PROTOCOL)
             .authority("localhost")
             .path(name);
         if (!subPath.isEmpty()) {
@@ -163,7 +163,7 @@ public class AssetFilesystem extends Filesystem {
             // Add trailing / for directories.
             b.appendEncodedPath("");
         }
-        return LocalFilesystemURL.parse(b.build());
+        return KonnectLocalFilesystemURL.parse(b.build());
     }
 
     private boolean isDirectory(String assetPath) {
@@ -175,7 +175,7 @@ public class AssetFilesystem extends Filesystem {
     }
 
     @Override
-    public LocalFilesystemURL[] listChildren(LocalFilesystemURL inputURL) throws FileNotFoundException {
+    public KonnectLocalFilesystemURL[] listChildren(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException {
         String pathNoSlashes = inputURL.path.substring(1);
         if (pathNoSlashes.endsWith("/")) {
             pathNoSlashes = pathNoSlashes.substring(0, pathNoSlashes.length() - 1);
@@ -188,7 +188,7 @@ public class AssetFilesystem extends Filesystem {
             throw new FileNotFoundException();
         }
 
-        LocalFilesystemURL[] entries = new LocalFilesystemURL[files.length];
+        KonnectLocalFilesystemURL[] entries = new KonnectLocalFilesystemURL[files.length];
         for (int i = 0; i < files.length; ++i) {
             entries[i] = localUrlforFullPath(new File(inputURL.path, files[i]).getPath());
         }
@@ -196,9 +196,9 @@ public class AssetFilesystem extends Filesystem {
 	}
 
     @Override
-    public JSONObject getFileForLocalURL(LocalFilesystemURL inputURL,
+    public JSONObject getFileForLocalURL(KonnectLocalFilesystemURL inputURL,
                                          String path, JSONObject options, boolean directory)
-            throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
+            throws KonnectFileExistsException, IOException, KonnectTypeMismatchException, KonnectEncodingException, JSONException {
         if (options != null && options.optBoolean("create")) {
             throw new UnsupportedOperationException("Assets are read-only");
         }
@@ -208,7 +208,7 @@ public class AssetFilesystem extends Filesystem {
             path += "/";
         }
 
-        LocalFilesystemURL requestedURL;
+        KonnectLocalFilesystemURL requestedURL;
         if (path.startsWith("/")) {
             requestedURL = localUrlforFullPath(normalizePath(path));
         } else {
@@ -220,9 +220,9 @@ public class AssetFilesystem extends Filesystem {
 
         boolean isDir = isDirectory(requestedURL.path);
         if (directory && !isDir) {
-            throw new TypeMismatchException("path doesn't exist or is file");
+            throw new KonnectTypeMismatchException("path doesn't exist or is file");
         } else if (!directory && isDir) {
-            throw new TypeMismatchException("path doesn't exist or is directory");
+            throw new KonnectTypeMismatchException("path doesn't exist or is directory");
         }
 
         // Return the directory
@@ -230,7 +230,7 @@ public class AssetFilesystem extends Filesystem {
     }
 
     @Override
-	public JSONObject getFileMetadataForLocalURL(LocalFilesystemURL inputURL) throws FileNotFoundException {
+	public JSONObject getFileMetadataForLocalURL(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException {
         JSONObject metadata = new JSONObject();
         long size = inputURL.isDirectory ? 0 : getAssetSize(inputURL.path);
         try {
@@ -246,38 +246,38 @@ public class AssetFilesystem extends Filesystem {
 	}
 
 	@Override
-	public boolean canRemoveFileAtLocalURL(LocalFilesystemURL inputURL) {
+	public boolean canRemoveFileAtLocalURL(KonnectLocalFilesystemURL inputURL) {
 		return false;
 	}
 
     @Override
-    long writeToFileAtURL(LocalFilesystemURL inputURL, String data, int offset, boolean isBinary) throws NoModificationAllowedException, IOException {
-        throw new NoModificationAllowedException("Assets are read-only");
+    long writeToFileAtURL(KonnectLocalFilesystemURL inputURL, String data, int offset, boolean isBinary) throws KonnectNoModificationAllowedException, IOException {
+        throw new KonnectNoModificationAllowedException("Assets are read-only");
     }
 
     @Override
-    long truncateFileAtURL(LocalFilesystemURL inputURL, long size) throws IOException, NoModificationAllowedException {
-        throw new NoModificationAllowedException("Assets are read-only");
+    long truncateFileAtURL(KonnectLocalFilesystemURL inputURL, long size) throws IOException, KonnectNoModificationAllowedException {
+        throw new KonnectNoModificationAllowedException("Assets are read-only");
     }
 
     @Override
-    String filesystemPathForURL(LocalFilesystemURL url) {
+    String filesystemPathForURL(KonnectLocalFilesystemURL url) {
         return null;
     }
 
     @Override
-    LocalFilesystemURL URLforFilesystemPath(String path) {
+    KonnectLocalFilesystemURL URLforFilesystemPath(String path) {
         return null;
     }
 
     @Override
-    boolean removeFileAtLocalURL(LocalFilesystemURL inputURL) throws InvalidModificationException, NoModificationAllowedException {
-        throw new NoModificationAllowedException("Assets are read-only");
+    boolean removeFileAtLocalURL(KonnectLocalFilesystemURL inputURL) throws KonnectInvalidModificationException, KonnectNoModificationAllowedException {
+        throw new KonnectNoModificationAllowedException("Assets are read-only");
     }
 
     @Override
-    boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws NoModificationAllowedException {
-        throw new NoModificationAllowedException("Assets are read-only");
+    boolean recursiveRemoveFileAtLocalURL(KonnectLocalFilesystemURL inputURL) throws KonnectNoModificationAllowedException {
+        throw new KonnectNoModificationAllowedException("Assets are read-only");
     }
 
 }

@@ -21,9 +21,9 @@
 package org.apache.cordova.file;
 
 @SuppressWarnings("serial")
-public class InvalidModificationException extends Exception {
+public class KonnectInvalidModificationException extends Exception {
 
-    public InvalidModificationException(String message) {
+    public KonnectInvalidModificationException(String message) {
         super(message);
     }
 

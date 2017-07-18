@@ -39,10 +39,10 @@ import android.net.Uri;
 import android.content.Context;
 import android.content.Intent;
 
-public class LocalFilesystem extends Filesystem {
+public class KonnectLocalFilesystem extends KonnectFilesystem {
     private final Context context;
 
-    public LocalFilesystem(String name, Context context, CordovaResourceApi resourceApi, File fsRoot) {
+    public KonnectLocalFilesystem(String name, Context context, CordovaResourceApi resourceApi, File fsRoot) {
         super(Uri.fromFile(fsRoot).buildUpon().appendEncodedPath("").build(), name, resourceApi);
         this.context = context;
     }
@@ -52,7 +52,7 @@ public class LocalFilesystem extends Filesystem {
 	}
 	
 	@Override
-	public String filesystemPathForURL(LocalFilesystemURL url) {
+	public String filesystemPathForURL(KonnectLocalFilesystemURL url) {
 		return filesystemPathForFullPath(url.path);
 	}
 
@@ -64,12 +64,12 @@ public class LocalFilesystem extends Filesystem {
 	}
 
     @Override
-    public Uri toNativeUri(LocalFilesystemURL inputURL) {
+    public Uri toNativeUri(KonnectLocalFilesystemURL inputURL) {
         return nativeUriForFullPath(inputURL.path);
     }
 
     @Override
-    public LocalFilesystemURL toLocalUri(Uri inputURL) {
+    public KonnectLocalFilesystemURL toLocalUri(Uri inputURL) {
         if (!"file".equals(inputURL.getScheme())) {
             return null;
         }
@@ -87,7 +87,7 @@ public class LocalFilesystem extends Filesystem {
             subPath = subPath.substring(1);
         }
         Uri.Builder b = new Uri.Builder()
-            .scheme(LocalFilesystemURL.FILESYSTEM_PROTOCOL)
+            .scheme(KonnectLocalFilesystemURL.FILESYSTEM_PROTOCOL)
             .authority("localhost")
             .path(name);
         if (!subPath.isEmpty()) {
@@ -97,17 +97,17 @@ public class LocalFilesystem extends Filesystem {
             // Add trailing / for directories.
             b.appendEncodedPath("");
         }
-        return LocalFilesystemURL.parse(b.build());
+        return KonnectLocalFilesystemURL.parse(b.build());
     }
 	
 	@Override
-	public LocalFilesystemURL URLforFilesystemPath(String path) {
+	public KonnectLocalFilesystemURL URLforFilesystemPath(String path) {
 	    return localUrlforFullPath(fullPathForFilesystemPath(path));
 	}
 
 	@Override
-	public JSONObject getFileForLocalURL(LocalFilesystemURL inputURL,
-			String path, JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
+	public JSONObject getFileForLocalURL(KonnectLocalFilesystemURL inputURL,
+			String path, JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, KonnectTypeMismatchException, KonnectEncodingException, JSONException {
         boolean create = false;
         boolean exclusive = false;
 
@@ -123,7 +123,7 @@ public class LocalFilesystem extends Filesystem {
             throw new KonnectEncodingException("This path has an invalid \":\" in it.");
         }
 
-        LocalFilesystemURL requestedURL;
+        KonnectLocalFilesystemURL requestedURL;
         
         // Check whether the supplied path is absolute or relative
         if (directory && !path.endsWith("/")) {
@@ -156,11 +156,11 @@ public class LocalFilesystem extends Filesystem {
             }
             if (directory) {
                 if (fp.isFile()) {
-                    throw new TypeMismatchException("path doesn't exist or is file");
+                    throw new KonnectTypeMismatchException("path doesn't exist or is file");
                 }
             } else {
                 if (fp.isDirectory()) {
-                    throw new TypeMismatchException("path doesn't exist or is directory");
+                    throw new KonnectTypeMismatchException("path doesn't exist or is directory");
                 }
             }
         }
@@ -170,26 +170,26 @@ public class LocalFilesystem extends Filesystem {
 	}
 
 	@Override
-	public boolean removeFileAtLocalURL(LocalFilesystemURL inputURL) throws InvalidModificationException {
+	public boolean removeFileAtLocalURL(KonnectLocalFilesystemURL inputURL) throws KonnectInvalidModificationException {
 
         File fp = new File(filesystemPathForURL(inputURL));
 
         // You can't delete a directory that is not empty
         if (fp.isDirectory() && fp.list().length > 0) {
-            throw new InvalidModificationException("You can't delete a directory that is not empty.");
+            throw new KonnectInvalidModificationException("You can't delete a directory that is not empty.");
         }
 
         return fp.delete();
 	}
 
     @Override
-    public boolean exists(LocalFilesystemURL inputURL) {
+    public boolean exists(KonnectLocalFilesystemURL inputURL) {
         File fp = new File(filesystemPathForURL(inputURL));
         return fp.exists();
     }
 
     @Override
-	public boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws KonnectFileExistsException {
+	public boolean recursiveRemoveFileAtLocalURL(KonnectLocalFilesystemURL inputURL) throws KonnectFileExistsException {
         File directory = new File(filesystemPathForURL(inputURL));
     	return removeDirRecursively(directory);
 	}
@@ -209,7 +209,7 @@ public class LocalFilesystem extends Filesystem {
 	}
 
     @Override
-    public LocalFilesystemURL[] listChildren(LocalFilesystemURL inputURL) throws FileNotFoundException {
+    public KonnectLocalFilesystemURL[] listChildren(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException {
         File fp = new File(filesystemPathForURL(inputURL));
 
         if (!fp.exists()) {
@@ -222,7 +222,7 @@ public class LocalFilesystem extends Filesystem {
             // inputURL is a directory
             return null;
         }
-        LocalFilesystemURL[] entries = new LocalFilesystemURL[files.length];
+        KonnectLocalFilesystemURL[] entries = new KonnectLocalFilesystemURL[files.length];
         for (int i = 0; i < files.length; i++) {
             entries[i] = URLforFilesystemPath(files[i].getPath());
         }
@@ -231,7 +231,7 @@ public class LocalFilesystem extends Filesystem {
 	}
 
 	@Override
-	public JSONObject getFileMetadataForLocalURL(LocalFilesystemURL inputURL) throws FileNotFoundException {
+	public JSONObject getFileMetadataForLocalURL(KonnectLocalFilesystemURL inputURL) throws FileNotFoundException {
         File file = new File(filesystemPathForURL(inputURL));
 
         if (!file.exists()) {
@@ -252,7 +252,7 @@ public class LocalFilesystem extends Filesystem {
         return metadata;
 	}
 
-    private void copyFile(Filesystem srcFs, LocalFilesystemURL srcURL, File destFile, boolean move) throws IOException, InvalidModificationException, NoModificationAllowedException {
+    private void copyFile(KonnectFilesystem srcFs, KonnectLocalFilesystemURL srcURL, File destFile, boolean move) throws IOException, KonnectInvalidModificationException, KonnectNoModificationAllowedException {
         if (move) {
             String realSrcPath = srcFs.filesystemPathForURL(srcURL);
             if (realSrcPath != null) {
@@ -272,7 +272,7 @@ public class LocalFilesystem extends Filesystem {
         }
     }
 
-    private void copyDirectory(Filesystem srcFs, LocalFilesystemURL srcURL, File dstDir, boolean move) throws IOException, NoModificationAllowedException, InvalidModificationException, KonnectFileExistsException {
+    private void copyDirectory(KonnectFilesystem srcFs, KonnectLocalFilesystemURL srcURL, File dstDir, boolean move) throws IOException, KonnectNoModificationAllowedException, KonnectInvalidModificationException, KonnectFileExistsException {
         if (move) {
             String realSrcPath = srcFs.filesystemPathForURL(srcURL);
             if (realSrcPath != null) {
@@ -280,7 +280,7 @@ public class LocalFilesystem extends Filesystem {
                 // If the destination directory already exists and is empty then delete it.  This is according to spec.
                 if (dstDir.exists()) {
                     if (dstDir.list().length > 0) {
-                        throw new InvalidModificationException("directory is not empty");
+                        throw new KonnectInvalidModificationException("directory is not empty");
                     }
                     dstDir.delete();
                 }
@@ -294,17 +294,17 @@ public class LocalFilesystem extends Filesystem {
 
         if (dstDir.exists()) {
             if (dstDir.list().length > 0) {
-                throw new InvalidModificationException("directory is not empty");
+                throw new KonnectInvalidModificationException("directory is not empty");
             }
         } else {
             if (!dstDir.mkdir()) {
                 // If we can't create the directory then fail
-                throw new NoModificationAllowedException("Couldn't create the destination directory");
+                throw new KonnectNoModificationAllowedException("Couldn't create the destination directory");
             }
         }
 
-        LocalFilesystemURL[] children = srcFs.listChildren(srcURL);
-        for (LocalFilesystemURL childLocalUrl : children) {
+        KonnectLocalFilesystemURL[] children = srcFs.listChildren(srcURL);
+        for (KonnectLocalFilesystemURL childLocalUrl : children) {
             File target = new File(dstDir, new File(childLocalUrl.path).getName());
             if (childLocalUrl.isDirectory) {
                 copyDirectory(srcFs, childLocalUrl, target, false);
@@ -319,8 +319,8 @@ public class LocalFilesystem extends Filesystem {
     }
 
 	@Override
-	public JSONObject copyFileToURL(LocalFilesystemURL destURL, String newName,
-			Filesystem srcFs, LocalFilesystemURL srcURL, boolean move) throws IOException, InvalidModificationException, JSONException, NoModificationAllowedException, KonnectFileExistsException {
+	public JSONObject copyFileToURL(KonnectLocalFilesystemURL destURL, String newName,
+			KonnectFilesystem srcFs, KonnectLocalFilesystemURL srcURL, boolean move) throws IOException, KonnectInvalidModificationException, JSONException, KonnectNoModificationAllowedException, KonnectFileExistsException {
 
 		// Check to see if the destination directory exists
         String newParent = this.filesystemPathForURL(destURL);
@@ -331,32 +331,32 @@ public class LocalFilesystem extends Filesystem {
         }
         
         // Figure out where we should be copying to
-        final LocalFilesystemURL destinationURL = makeDestinationURL(newName, srcURL, destURL, srcURL.isDirectory);
+        final KonnectLocalFilesystemURL destinationURL = makeDestinationURL(newName, srcURL, destURL, srcURL.isDirectory);
 
         Uri dstNativeUri = toNativeUri(destinationURL);
         Uri srcNativeUri = srcFs.toNativeUri(srcURL);
         // Check to see if source and destination are the same file
         if (dstNativeUri.equals(srcNativeUri)) {
-            throw new InvalidModificationException("Can't copy onto itself");
+            throw new KonnectInvalidModificationException("Can't copy onto itself");
         }
 
         if (move && !srcFs.canRemoveFileAtLocalURL(srcURL)) {
-            throw new InvalidModificationException("Source URL is read-only (cannot move)");
+            throw new KonnectInvalidModificationException("Source URL is read-only (cannot move)");
         }
 
         File destFile = new File(dstNativeUri.getPath());
         if (destFile.exists()) {
             if (!srcURL.isDirectory && destFile.isDirectory()) {
-                throw new InvalidModificationException("Can't copy/move a file to an existing directory");
+                throw new KonnectInvalidModificationException("Can't copy/move a file to an existing directory");
             } else if (srcURL.isDirectory && destFile.isFile()) {
-                throw new InvalidModificationException("Can't copy/move a directory to an existing file");
+                throw new KonnectInvalidModificationException("Can't copy/move a directory to an existing file");
             }
         }
 
         if (srcURL.isDirectory) {
             // E.g. Copy /sdcard/myDir to /sdcard/myDir/backup
             if (dstNativeUri.toString().startsWith(srcNativeUri.toString() + '/')) {
-                throw new InvalidModificationException("Can't copy directory into itself");
+                throw new KonnectInvalidModificationException("Can't copy directory into itself");
             }
             copyDirectory(srcFs, srcURL, destFile, move);
         } else {
@@ -366,8 +366,8 @@ public class LocalFilesystem extends Filesystem {
 	}
     
 	@Override
-	public long writeToFileAtURL(LocalFilesystemURL inputURL, String data,
-			int offset, boolean isBinary) throws IOException, NoModificationAllowedException {
+	public long writeToFileAtURL(KonnectLocalFilesystemURL inputURL, String data,
+			int offset, boolean isBinary) throws IOException, KonnectNoModificationAllowedException {
 
         boolean append = false;
         if (offset > 0) {
@@ -402,7 +402,7 @@ public class LocalFilesystem extends Filesystem {
         catch (NullPointerException e)
         {
             // This is a bug in the Android implementation of the Java Stack
-            NoModificationAllowedException realException = new NoModificationAllowedException(inputURL.toString());
+            KonnectNoModificationAllowedException realException = new KonnectNoModificationAllowedException(inputURL.toString());
             throw realException;
         }
 
@@ -433,7 +433,7 @@ public class LocalFilesystem extends Filesystem {
     }
 
 	@Override
-	public long truncateFileAtURL(LocalFilesystemURL inputURL, long size) throws IOException {
+	public long truncateFileAtURL(KonnectLocalFilesystemURL inputURL, long size) throws IOException {
         File file = new File(filesystemPathForURL(inputURL));
 
         if (!file.exists()) {
@@ -457,7 +457,7 @@ public class LocalFilesystem extends Filesystem {
 	}
 
 	@Override
-	public boolean canRemoveFileAtLocalURL(LocalFilesystemURL inputURL) {
+	public boolean canRemoveFileAtLocalURL(KonnectLocalFilesystemURL inputURL) {
 		String path = filesystemPathForURL(inputURL);
 		File file = new File(path);
 		return file.exists();

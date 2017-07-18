@@ -76,16 +76,16 @@ public class KonnectFileUtils extends CordovaPlugin {
         void run(JSONArray args) throws Exception;
     }
     
-    private ArrayList<Filesystem> filesystems;
+    private ArrayList<KonnectFilesystem> filesystems;
 
-    public void registerFilesystem(Filesystem fs) {
+    public void registerFilesystem(KonnectFilesystem fs) {
     	if (fs != null && filesystemForName(fs.name)== null) {
     		this.filesystems.add(fs);
     	}
     }
     
-    private Filesystem filesystemForName(String name) {
-    	for (Filesystem fs:filesystems) {
+    private KonnectFilesystem filesystemForName(String name) {
+    	for (KonnectFilesystem fs:filesystems) {
     		if (fs != null && fs.name != null && fs.name.equals(name)) {
     			return fs;
     		}
@@ -111,7 +111,7 @@ public class KonnectFileUtils extends CordovaPlugin {
                 if (fsRoot != null) {
                     File newRoot = new File(fsRoot);
                     if (newRoot.mkdirs() || newRoot.isDirectory()) {
-                        registerFilesystem(new LocalFilesystem(fsName, webView.getContext(), webView.getResourceApi(), newRoot));
+                        registerFilesystem(new KonnectLocalFilesystem(fsName, webView.getContext(), webView.getResourceApi(), newRoot));
                         installedFileSystems.add(fsName);
                     } else {
                        Log.d(LOG_TAG, "Unable to create root dir for filesystem \"" + fsName + "\", skipping");
@@ -148,7 +148,7 @@ public class KonnectFileUtils extends CordovaPlugin {
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
     	super.initialize(cordova, webView);
-    	this.filesystems = new ArrayList<Filesystem>();
+    	this.filesystems = new ArrayList<KonnectFilesystem>();
 
     	String tempRoot = null;
     	String persistentRoot = null;
@@ -193,8 +193,8 @@ public class KonnectFileUtils extends CordovaPlugin {
     		// Note: The temporary and persistent filesystems need to be the first two
     		// registered, so that they will match window.TEMPORARY and window.PERSISTENT,
     		// per spec.
-    		this.registerFilesystem(new LocalFilesystem("temporary", webView.getContext(), webView.getResourceApi(), tmpRootFile));
-    		this.registerFilesystem(new LocalFilesystem("persistent", webView.getContext(), webView.getResourceApi(), persistentRootFile));
+    		this.registerFilesystem(new KonnectLocalFilesystem("temporary", webView.getContext(), webView.getResourceApi(), tmpRootFile));
+    		this.registerFilesystem(new KonnectLocalFilesystem("persistent", webView.getContext(), webView.getResourceApi(), persistentRootFile));
 
 //            registerExtraFileSystems(getExtraFileSystemsPreference(activity), getAvailableFileSystems(activity));
 
@@ -212,7 +212,7 @@ public class KonnectFileUtils extends CordovaPlugin {
 		return filePlugin;
 	}
 
-	private Filesystem filesystemForURL(LocalFilesystemURL localURL) {
+	private KonnectFilesystem filesystemForURL(KonnectLocalFilesystemURL localURL) {
     	if (localURL == null) return null;
     	return filesystemForName(localURL.fsName);
     }
@@ -220,12 +220,12 @@ public class KonnectFileUtils extends CordovaPlugin {
     @Override
     public Uri remapUri(Uri uri) {
         // Remap only cdvfile: URLs (not content:).
-        if (!LocalFilesystemURL.FILESYSTEM_PROTOCOL.equals(uri.getScheme())) {
+        if (!KonnectLocalFilesystemURL.FILESYSTEM_PROTOCOL.equals(uri.getScheme())) {
             return null;
         }
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(uri);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(uri);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		return null;
         	}
@@ -256,13 +256,13 @@ public class KonnectFileUtils extends CordovaPlugin {
         return true;
     }
 
-    public LocalFilesystemURL resolveNativeUri(Uri nativeUri) {
-        LocalFilesystemURL localURL = null;
+    public KonnectLocalFilesystemURL resolveNativeUri(Uri nativeUri) {
+        KonnectLocalFilesystemURL localURL = null;
 
         // Try all installed filesystems. Return the best matching URL
         // (determined by the shortest resulting URL)
-        for (Filesystem fs : filesystems) {
-            LocalFilesystemURL url = fs.toLocalUri(nativeUri);
+        for (KonnectFilesystem fs : filesystems) {
+            KonnectLocalFilesystemURL url = fs.toLocalUri(nativeUri);
             if (url != null) {
                 // A shorter fullPath implies that the filesystem is a better
                 // match for the local path than the previous best.
@@ -282,8 +282,8 @@ public class KonnectFileUtils extends CordovaPlugin {
 
     public String filesystemPathForURL(String localURLstr) throws MalformedURLException {
         try {
-            LocalFilesystemURL inputURL = LocalFilesystemURL.parse(localURLstr);
-            Filesystem fs = this.filesystemForURL(inputURL);
+            KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(localURLstr);
+            KonnectFilesystem fs = this.filesystemForURL(inputURL);
             if (fs == null) {
                 throw new MalformedURLException("No installed handlers for this URL");
             }
@@ -293,14 +293,14 @@ public class KonnectFileUtils extends CordovaPlugin {
         }
     }
 
-    public LocalFilesystemURL filesystemURLforLocalPath(String localPath) {
-        LocalFilesystemURL localURL = null;
+    public KonnectLocalFilesystemURL filesystemURLforLocalPath(String localPath) {
+        KonnectLocalFilesystemURL localURL = null;
         int shortestFullPath = 0;
 
         // Try all installed filesystems. Return the best matching URL
         // (determined by the shortest resulting URL)
-        for (Filesystem fs: filesystems) {
-            LocalFilesystemURL url = fs.URLforFilesystemPath(localPath);
+        for (KonnectFilesystem fs: filesystems) {
+            KonnectLocalFilesystemURL url = fs.URLforFilesystemPath(localPath);
             if (url != null) {
                 // A shorter fullPath implies that the filesystem is a better
                 // match for the local path than the previous best.
@@ -330,9 +330,9 @@ public class KonnectFileUtils extends CordovaPlugin {
                         callbackContext.error(KonnectFileUtils.NOT_FOUND_ERR);
                     } else if(e instanceof KonnectFileExistsException) {
                         callbackContext.error(KonnectFileUtils.PATH_EXISTS_ERR);
-                    } else if(e instanceof NoModificationAllowedException ) {
+                    } else if(e instanceof KonnectNoModificationAllowedException ) {
                         callbackContext.error(KonnectFileUtils.NO_MODIFICATION_ALLOWED_ERR);
-                    } else if(e instanceof InvalidModificationException ) {
+                    } else if(e instanceof KonnectInvalidModificationException ) {
                         callbackContext.error(KonnectFileUtils.INVALID_MODIFICATION_ERR);
                     } else if(e instanceof MalformedURLException ) {
                         callbackContext.error(KonnectFileUtils.ENCODING_ERR);
@@ -340,7 +340,7 @@ public class KonnectFileUtils extends CordovaPlugin {
                         callbackContext.error(KonnectFileUtils.INVALID_MODIFICATION_ERR);
                     } else if(e instanceof KonnectEncodingException ) {
                         callbackContext.error(KonnectFileUtils.ENCODING_ERR);
-                    } else if(e instanceof TypeMismatchException ) {
+                    } else if(e instanceof KonnectTypeMismatchException ) {
                         callbackContext.error(KonnectFileUtils.TYPE_MISMATCH_ERR);
                     } else if(e instanceof JSONException ) {
                         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.JSON_EXCEPTION));
@@ -369,14 +369,14 @@ public class KonnectFileUtils extends CordovaPlugin {
     	}
     	Uri uri = Uri.parse(uriString);
 
-        LocalFilesystemURL inputURL = LocalFilesystemURL.parse(uri);
+        KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(uri);
         if (inputURL == null) {
     		/* Check for file://, content:// urls */
     		inputURL = resolveNativeUri(uri);
     	}
 
         try {
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -399,8 +399,8 @@ public class KonnectFileUtils extends CordovaPlugin {
      */
     private JSONArray readEntries(String baseURLstr) throws FileNotFoundException, JSONException, MalformedURLException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(baseURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -417,24 +417,24 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @param newName for the file directory to be called, if null use existing file name
      * @param move if false do a copy, if true do a move
      * @return a Entry object
-     * @throws NoModificationAllowedException
+     * @throws KonnectNoModificationAllowedException
      * @throws IOException
-     * @throws InvalidModificationException
+     * @throws KonnectInvalidModificationException
      * @throws KonnectEncodingException
      * @throws JSONException
      * @throws KonnectFileExistsException
      */
-    private JSONObject transferTo(String srcURLstr, String destURLstr, String newName, boolean move) throws JSONException, NoModificationAllowedException, IOException, InvalidModificationException, KonnectEncodingException, KonnectFileExistsException {
+    private JSONObject transferTo(String srcURLstr, String destURLstr, String newName, boolean move) throws JSONException, KonnectNoModificationAllowedException, IOException, KonnectInvalidModificationException, KonnectEncodingException, KonnectFileExistsException {
         if (srcURLstr == null || destURLstr == null) {
             // either no source or no destination provided
         	throw new FileNotFoundException();
         }
 
-        LocalFilesystemURL srcURL = LocalFilesystemURL.parse(srcURLstr);
-        LocalFilesystemURL destURL = LocalFilesystemURL.parse(destURLstr);
+        KonnectLocalFilesystemURL srcURL = KonnectLocalFilesystemURL.parse(srcURLstr);
+        KonnectLocalFilesystemURL destURL = KonnectLocalFilesystemURL.parse(destURLstr);
 
-        Filesystem srcFs = this.filesystemForURL(srcURL);
-        Filesystem destFs = this.filesystemForURL(destURL);
+        KonnectFilesystem srcFs = this.filesystemForURL(srcURL);
+        KonnectFilesystem destFs = this.filesystemForURL(destURL);
 
         // Check for invalid file name
         if (newName != null && newName.contains(":")) {
@@ -452,18 +452,18 @@ public class KonnectFileUtils extends CordovaPlugin {
      *
      * @return a boolean representing success of failure
      * @throws KonnectFileExistsException
-     * @throws NoModificationAllowedException 
+     * @throws KonnectNoModificationAllowedException 
      * @throws MalformedURLException 
      */
-    private boolean removeRecursively(String baseURLstr) throws KonnectFileExistsException, NoModificationAllowedException, MalformedURLException {
+    private boolean removeRecursively(String baseURLstr) throws KonnectFileExistsException, KonnectNoModificationAllowedException, MalformedURLException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(baseURLstr);
         	// You can't delete the root directory.
         	if ("".equals(inputURL.path) || "/".equals(inputURL.path)) {
-        		throw new NoModificationAllowedException("You can't delete the root directory");
+        		throw new KonnectNoModificationAllowedException("You can't delete the root directory");
         	}
 
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -480,20 +480,20 @@ public class KonnectFileUtils extends CordovaPlugin {
      * It is an error to attempt to delete the root directory of a filesystem.
      *
      * @return a boolean representing success of failure
-     * @throws NoModificationAllowedException
-     * @throws InvalidModificationException
+     * @throws KonnectNoModificationAllowedException
+     * @throws KonnectInvalidModificationException
      * @throws MalformedURLException 
      */
-    private boolean remove(String baseURLstr) throws NoModificationAllowedException, InvalidModificationException, MalformedURLException {
+    private boolean remove(String baseURLstr) throws KonnectNoModificationAllowedException, KonnectInvalidModificationException, MalformedURLException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(baseURLstr);
         	// You can't delete the root directory.
         	if ("".equals(inputURL.path) || "/".equals(inputURL.path)) {
 
-        		throw new NoModificationAllowedException("You can't delete the root directory");
+        		throw new KonnectNoModificationAllowedException("You can't delete the root directory");
         	}
 
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -514,14 +514,14 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @return a Entry object
      * @throws KonnectFileExistsException
      * @throws IOException
-     * @throws TypeMismatchException
+     * @throws KonnectTypeMismatchException
      * @throws KonnectEncodingException
      * @throws JSONException
      */
-    private JSONObject getFile(String baseURLstr, String path, JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
+    private JSONObject getFile(String baseURLstr, String path, JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, KonnectTypeMismatchException, KonnectEncodingException, JSONException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(baseURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -539,8 +539,8 @@ public class KonnectFileUtils extends CordovaPlugin {
      */
     private JSONObject getParent(String baseURLstr) throws JSONException, IOException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(baseURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -558,8 +558,8 @@ public class KonnectFileUtils extends CordovaPlugin {
      */
     private JSONObject getFileMetadata(String baseURLstr) throws FileNotFoundException, JSONException, MalformedURLException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(baseURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -580,7 +580,7 @@ public class KonnectFileUtils extends CordovaPlugin {
      */
     private JSONObject requestFileSystem(int type) throws IOException, JSONException {
         JSONObject fs = new JSONObject();
-        Filesystem rootFs = null;
+        KonnectFilesystem rootFs = null;
         try {
         	rootFs = this.filesystems.get(type);
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -602,7 +602,7 @@ public class KonnectFileUtils extends CordovaPlugin {
      */
     private JSONArray requestAllFileSystems() throws IOException, JSONException {
         JSONArray ret = new JSONArray();
-        for (Filesystem fs : filesystems) {
+        for (KonnectFilesystem fs : filesystems) {
             ret.put(fs.getRootEntry());
         }
         return ret;
@@ -645,7 +645,7 @@ public class KonnectFileUtils extends CordovaPlugin {
     public JSONObject getEntryForFile(File file) throws JSONException {
         JSONObject entry;
 
-        for (Filesystem fs : filesystems) {
+        for (KonnectFilesystem fs : filesystems) {
              entry = fs.makeEntryForFile(file);
              if (entry != null) {
                  return entry;
@@ -685,13 +685,13 @@ public class KonnectFileUtils extends CordovaPlugin {
      */
     public void readFileAs(final String srcURLstr, final int start, final int end, final CallbackContext callbackContext, final String encoding, final int resultType) throws MalformedURLException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(srcURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(srcURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
         
-            fs.readFileAtURL(inputURL, start, end, new Filesystem.KonnectReadFileCallback() {
+            fs.readFileAtURL(inputURL, start, end, new KonnectFilesystem.KonnectReadFileCallback() {
                 public void handleData(InputStream inputStream, String contentType) {
             		try {
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -752,10 +752,10 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @param isBinary          True if the file contents are base64-encoded binary data
      */
     /**/
-    public long write(String srcURLstr, String data, int offset, boolean isBinary) throws FileNotFoundException, IOException, NoModificationAllowedException {
+    public long write(String srcURLstr, String data, int offset, boolean isBinary) throws FileNotFoundException, IOException, KonnectNoModificationAllowedException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(srcURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(srcURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
@@ -770,10 +770,10 @@ public class KonnectFileUtils extends CordovaPlugin {
     /**
      * Truncate the file to size
      */
-    private long truncateFile(String srcURLstr, long size) throws FileNotFoundException, IOException, NoModificationAllowedException {
+    private long truncateFile(String srcURLstr, long size) throws FileNotFoundException, IOException, KonnectNoModificationAllowedException {
         try {
-        	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(srcURLstr);
-        	Filesystem fs = this.filesystemForURL(inputURL);
+        	KonnectLocalFilesystemURL inputURL = KonnectLocalFilesystemURL.parse(srcURLstr);
+        	KonnectFilesystem fs = this.filesystemForURL(inputURL);
         	if (fs == null) {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
