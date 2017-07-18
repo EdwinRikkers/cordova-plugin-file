@@ -247,6 +247,7 @@ public class KonnectFileUtils extends CordovaPlugin {
         
         threadhelper( new FileOp( ){
             public void run(JSONArray args) throws IOException, JSONException {
+            	int fstype=args.getInt(0);
                 JSONObject obj = requestFileSystem(fstype);
                 callbackContext.success(obj);
             }
