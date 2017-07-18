@@ -324,7 +324,7 @@ public class KonnectFileUtils extends CordovaPlugin {
                     JSONArray args = new JSONArray(rawArgs);
                     f.run(args);
                 } catch ( Exception e) {
-                    if( e instanceof EncodingException){
+                    if( e instanceof KonnectEncodingException){
                         callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof FileNotFoundException) {
                         callbackContext.error(KonnectFileUtils.NOT_FOUND_ERR);
@@ -338,7 +338,7 @@ public class KonnectFileUtils extends CordovaPlugin {
                         callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof IOException ) {
                         callbackContext.error(KonnectFileUtils.INVALID_MODIFICATION_ERR);
-                    } else if(e instanceof EncodingException ) {
+                    } else if(e instanceof KonnectEncodingException ) {
                         callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof TypeMismatchException ) {
                         callbackContext.error(KonnectFileUtils.TYPE_MISMATCH_ERR);
@@ -420,11 +420,11 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @throws NoModificationAllowedException
      * @throws IOException
      * @throws InvalidModificationException
-     * @throws EncodingException
+     * @throws KonnectEncodingException
      * @throws JSONException
      * @throws FileExistsException
      */
-    private JSONObject transferTo(String srcURLstr, String destURLstr, String newName, boolean move) throws JSONException, NoModificationAllowedException, IOException, InvalidModificationException, EncodingException, FileExistsException {
+    private JSONObject transferTo(String srcURLstr, String destURLstr, String newName, boolean move) throws JSONException, NoModificationAllowedException, IOException, InvalidModificationException, KonnectEncodingException, FileExistsException {
         if (srcURLstr == null || destURLstr == null) {
             // either no source or no destination provided
         	throw new FileNotFoundException();
@@ -438,7 +438,7 @@ public class KonnectFileUtils extends CordovaPlugin {
 
         // Check for invalid file name
         if (newName != null && newName.contains(":")) {
-            throw new EncodingException("Bad file name");
+            throw new KonnectEncodingException("Bad file name");
         }
 
         return destFs.copyFileToURL(destURL, newName, srcFs, srcURL, move);
@@ -515,10 +515,10 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @throws FileExistsException
      * @throws IOException
      * @throws TypeMismatchException
-     * @throws EncodingException
+     * @throws KonnectEncodingException
      * @throws JSONException
      */
-    private JSONObject getFile(String baseURLstr, String path, JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, EncodingException, JSONException {
+    private JSONObject getFile(String baseURLstr, String path, JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
         try {
         	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
         	Filesystem fs = this.filesystemForURL(inputURL);

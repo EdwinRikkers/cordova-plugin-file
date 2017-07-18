@@ -107,7 +107,7 @@ public class LocalFilesystem extends Filesystem {
 
 	@Override
 	public JSONObject getFileForLocalURL(LocalFilesystemURL inputURL,
-			String path, JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, EncodingException, JSONException {
+			String path, JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
         boolean create = false;
         boolean exclusive = false;
 
@@ -120,7 +120,7 @@ public class LocalFilesystem extends Filesystem {
 
         // Check for a ":" character in the file to line up with BB and iOS
         if (path.contains(":")) {
-            throw new EncodingException("This path has an invalid \":\" in it.");
+            throw new KonnectEncodingException("This path has an invalid \":\" in it.");
         }
 
         LocalFilesystemURL requestedURL;

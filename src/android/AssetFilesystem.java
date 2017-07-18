@@ -198,7 +198,7 @@ public class AssetFilesystem extends Filesystem {
     @Override
     public JSONObject getFileForLocalURL(LocalFilesystemURL inputURL,
                                          String path, JSONObject options, boolean directory)
-            throws FileExistsException, IOException, TypeMismatchException, EncodingException, JSONException {
+            throws FileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
         if (options != null && options.optBoolean("create")) {
             throw new UnsupportedOperationException("Assets are read-only");
         }
