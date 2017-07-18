@@ -328,7 +328,7 @@ public class KonnectFileUtils extends CordovaPlugin {
                         callbackContext.error(KonnectFileUtils.ENCODING_ERR);
                     } else if(e instanceof FileNotFoundException) {
                         callbackContext.error(KonnectFileUtils.NOT_FOUND_ERR);
-                    } else if(e instanceof FileExistsException) {
+                    } else if(e instanceof KonnectFileExistsException) {
                         callbackContext.error(KonnectFileUtils.PATH_EXISTS_ERR);
                     } else if(e instanceof NoModificationAllowedException ) {
                         callbackContext.error(KonnectFileUtils.NO_MODIFICATION_ALLOWED_ERR);
@@ -422,9 +422,9 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @throws InvalidModificationException
      * @throws KonnectEncodingException
      * @throws JSONException
-     * @throws FileExistsException
+     * @throws KonnectFileExistsException
      */
-    private JSONObject transferTo(String srcURLstr, String destURLstr, String newName, boolean move) throws JSONException, NoModificationAllowedException, IOException, InvalidModificationException, KonnectEncodingException, FileExistsException {
+    private JSONObject transferTo(String srcURLstr, String destURLstr, String newName, boolean move) throws JSONException, NoModificationAllowedException, IOException, InvalidModificationException, KonnectEncodingException, KonnectFileExistsException {
         if (srcURLstr == null || destURLstr == null) {
             // either no source or no destination provided
         	throw new FileNotFoundException();
@@ -451,11 +451,11 @@ public class KonnectFileUtils extends CordovaPlugin {
      * It is an error to attempt to delete the root directory of a filesystem.
      *
      * @return a boolean representing success of failure
-     * @throws FileExistsException
+     * @throws KonnectFileExistsException
      * @throws NoModificationAllowedException 
      * @throws MalformedURLException 
      */
-    private boolean removeRecursively(String baseURLstr) throws FileExistsException, NoModificationAllowedException, MalformedURLException {
+    private boolean removeRecursively(String baseURLstr) throws KonnectFileExistsException, NoModificationAllowedException, MalformedURLException {
         try {
         	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
         	// You can't delete the root directory.
@@ -512,13 +512,13 @@ public class KonnectFileUtils extends CordovaPlugin {
      * @param options specify whether to create or not
      * @param directory if true look up directory, if false look up file
      * @return a Entry object
-     * @throws FileExistsException
+     * @throws KonnectFileExistsException
      * @throws IOException
      * @throws TypeMismatchException
      * @throws KonnectEncodingException
      * @throws JSONException
      */
-    private JSONObject getFile(String baseURLstr, String path, JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
+    private JSONObject getFile(String baseURLstr, String path, JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
         try {
         	LocalFilesystemURL inputURL = LocalFilesystemURL.parse(baseURLstr);
         	Filesystem fs = this.filesystemForURL(inputURL);

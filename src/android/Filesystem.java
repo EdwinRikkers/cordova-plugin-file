@@ -100,11 +100,11 @@ public abstract class Filesystem {
     }
 
     abstract JSONObject getFileForLocalURL(LocalFilesystemURL inputURL, String path,
-			JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException;
+			JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException;
 
 	abstract boolean removeFileAtLocalURL(LocalFilesystemURL inputURL) throws InvalidModificationException, NoModificationAllowedException;
 
-	abstract boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws FileExistsException, NoModificationAllowedException;
+	abstract boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws KonnectFileExistsException, NoModificationAllowedException;
 
 	abstract LocalFilesystemURL[] listChildren(LocalFilesystemURL inputURL) throws FileNotFoundException;
 
@@ -230,7 +230,7 @@ public abstract class Filesystem {
 	 * or remove the source file when finished.
 	 */
     public JSONObject copyFileToURL(LocalFilesystemURL destURL, String newName,
-            Filesystem srcFs, LocalFilesystemURL srcURL, boolean move) throws IOException, InvalidModificationException, JSONException, NoModificationAllowedException, FileExistsException {
+            Filesystem srcFs, LocalFilesystemURL srcURL, boolean move) throws IOException, InvalidModificationException, JSONException, NoModificationAllowedException, KonnectFileExistsException {
         // First, check to see that we can do it
         if (move && !srcFs.canRemoveFileAtLocalURL(srcURL)) {
             throw new NoModificationAllowedException("Cannot move file at source URL");

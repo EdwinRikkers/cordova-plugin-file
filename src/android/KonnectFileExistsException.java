@@ -20,9 +20,9 @@
 package org.apache.cordova.file;
 
 @SuppressWarnings("serial")
-public class FileExistsException extends Exception {
+public class KonnectFileExistsException extends Exception {
 
-    public FileExistsException(String msg) {
+    public KonnectFileExistsException(String msg) {
         super(msg);
     }
 

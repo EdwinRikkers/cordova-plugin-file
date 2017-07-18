@@ -107,7 +107,7 @@ public class LocalFilesystem extends Filesystem {
 
 	@Override
 	public JSONObject getFileForLocalURL(LocalFilesystemURL inputURL,
-			String path, JSONObject options, boolean directory) throws FileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
+			String path, JSONObject options, boolean directory) throws KonnectFileExistsException, IOException, TypeMismatchException, KonnectEncodingException, JSONException {
         boolean create = false;
         boolean exclusive = false;
 
@@ -139,7 +139,7 @@ public class LocalFilesystem extends Filesystem {
 
         if (create) {
             if (exclusive && fp.exists()) {
-                throw new FileExistsException("create/exclusive fails");
+                throw new KonnectFileExistsException("create/exclusive fails");
             }
             if (directory) {
                 fp.mkdir();
@@ -147,7 +147,7 @@ public class LocalFilesystem extends Filesystem {
                 fp.createNewFile();
             }
             if (!fp.exists()) {
-                throw new FileExistsException("create fails");
+                throw new KonnectFileExistsException("create fails");
             }
         }
         else {
@@ -189,12 +189,12 @@ public class LocalFilesystem extends Filesystem {
     }
 
     @Override
-	public boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws FileExistsException {
+	public boolean recursiveRemoveFileAtLocalURL(LocalFilesystemURL inputURL) throws KonnectFileExistsException {
         File directory = new File(filesystemPathForURL(inputURL));
     	return removeDirRecursively(directory);
 	}
 	
-	protected boolean removeDirRecursively(File directory) throws FileExistsException {
+	protected boolean removeDirRecursively(File directory) throws KonnectFileExistsException {
         if (directory.isDirectory()) {
             for (File file : directory.listFiles()) {
                 removeDirRecursively(file);
@@ -202,7 +202,7 @@ public class LocalFilesystem extends Filesystem {
         }
 
         if (!directory.delete()) {
-            throw new FileExistsException("could not delete: " + directory.getName());
+            throw new KonnectFileExistsException("could not delete: " + directory.getName());
         } else {
             return true;
         }
@@ -272,7 +272,7 @@ public class LocalFilesystem extends Filesystem {
         }
     }
 
-    private void copyDirectory(Filesystem srcFs, LocalFilesystemURL srcURL, File dstDir, boolean move) throws IOException, NoModificationAllowedException, InvalidModificationException, FileExistsException {
+    private void copyDirectory(Filesystem srcFs, LocalFilesystemURL srcURL, File dstDir, boolean move) throws IOException, NoModificationAllowedException, InvalidModificationException, KonnectFileExistsException {
         if (move) {
             String realSrcPath = srcFs.filesystemPathForURL(srcURL);
             if (realSrcPath != null) {
@@ -320,7 +320,7 @@ public class LocalFilesystem extends Filesystem {
 
 	@Override
 	public JSONObject copyFileToURL(LocalFilesystemURL destURL, String newName,
-			Filesystem srcFs, LocalFilesystemURL srcURL, boolean move) throws IOException, InvalidModificationException, JSONException, NoModificationAllowedException, FileExistsException {
+			Filesystem srcFs, LocalFilesystemURL srcURL, boolean move) throws IOException, InvalidModificationException, JSONException, NoModificationAllowedException, KonnectFileExistsException {
 
 		// Check to see if the destination directory exists
         String newParent = this.filesystemPathForURL(destURL);
