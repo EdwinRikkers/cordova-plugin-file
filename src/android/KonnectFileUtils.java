@@ -16,7 +16,7 @@
        specific language governing permissions and limitations
        under the License.
  */
-package android;
+package org.apache.cordova.file;
 
 import android.app.Activity;
 import android.content.Context;
