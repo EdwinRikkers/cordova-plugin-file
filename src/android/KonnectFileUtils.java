@@ -691,7 +691,7 @@ public class KonnectFileUtils extends CordovaPlugin {
         		throw new MalformedURLException("No installed handlers for this URL");
         	}
         
-            fs.readFileAtURL(inputURL, start, end, new Filesystem.ReadFileCallback() {
+            fs.readFileAtURL(inputURL, start, end, new Filesystem.KonnectReadFileCallback() {
                 public void handleData(InputStream inputStream, String contentType) {
             		try {
                         ByteArrayOutputStream os = new ByteArrayOutputStream();

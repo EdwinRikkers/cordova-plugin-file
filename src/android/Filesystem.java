@@ -47,7 +47,7 @@ public abstract class Filesystem {
         this.resourceApi = resourceApi;
     }
 
-    public interface ReadFileCallback {
+    public interface KonnectReadFileCallback {
 		public void handleData(InputStream inputStream, String contentType) throws IOException;
 	}
 
@@ -261,7 +261,7 @@ public abstract class Filesystem {
     }
 
     public void readFileAtURL(LocalFilesystemURL inputURL, long start, long end,
-                              ReadFileCallback readFileCallback) throws IOException {
+                              KonnectReadFileCallback readFileCallback) throws IOException {
         CordovaResourceApi.OpenForReadResult ofrr = resourceApi.openForRead(toNativeUri(inputURL));
         if (end < 0) {
             end = ofrr.length;
