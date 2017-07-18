@@ -273,7 +273,7 @@ public abstract class Filesystem {
             }
             InputStream inputStream = ofrr.inputStream;
             if (end < ofrr.length) {
-                inputStream = new LimitedInputStream(inputStream, numBytesToRead);
+                inputStream = new KonnectLimitedInputStream(inputStream, numBytesToRead);
             }
             readFileCallback.handleData(inputStream, ofrr.mimeType);
         } finally {
@@ -294,9 +294,9 @@ public abstract class Filesystem {
 
 	abstract boolean canRemoveFileAtLocalURL(LocalFilesystemURL inputURL);
 
-    protected class LimitedInputStream extends FilterInputStream {
+    protected class KonnectLimitedInputStream extends FilterInputStream {
         long numBytesToRead;
-        public LimitedInputStream(InputStream in, long numBytesToRead) {
+        public KonnectLimitedInputStream(InputStream in, long numBytesToRead) {
             super(in);
             this.numBytesToRead = numBytesToRead;
         }
