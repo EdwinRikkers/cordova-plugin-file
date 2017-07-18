@@ -17,7 +17,7 @@
        under the License.
 */
 
-package android;
+package org.apache.cordova.file;
 
 @SuppressWarnings("serial")
 public class KonnectEncodingException extends Exception {
